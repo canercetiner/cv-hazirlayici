@@ -19,13 +19,8 @@ interface SupportModalProps {
     templateId?: string | null;
 }
 
-// Ad Unit ID - Test ID in development, real ID in production
-const adUnitId = Platform.OS === 'web' ? '' : (__DEV__
-    ? TestIds.REWARDED
-    : Platform.select({
-        ios: 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx',
-        android: 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx',
-    }) || TestIds.REWARDED);
+// Ad Unit ID - Always use test ID for now (real AdMob account not set up yet)
+const adUnitId = Platform.OS === 'web' ? '' : TestIds?.REWARDED || '';
 
 
 
