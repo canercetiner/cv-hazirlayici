@@ -30,10 +30,6 @@
         "com.google.android.gms.permission.AD_ID"
       ]
     },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
       "expo-router",
       [

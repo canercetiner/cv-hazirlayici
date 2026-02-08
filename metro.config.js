@@ -12,6 +12,15 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
             type: 'sourceFile',
         };
     }
+
+    // Mock react-native-google-mobile-ads for web platform
+    if (platform === 'web' && moduleName === 'react-native-google-mobile-ads') {
+        return {
+            filePath: require.resolve('./node_modules/react-native-google-mobile-ads/lib/commonjs/index.js'),
+            type: 'sourceFile',
+        };
+    }
+
     return context.resolveRequest(context, moduleName, platform);
 };
 
