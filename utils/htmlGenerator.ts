@@ -77,31 +77,21 @@ const getGlobalStyle = (data: ResumeData) => {
     ` : '';
 
     return `${META_TAG} * { box-sizing: border-box; margin: 0; padding: 0; } 
-    html { 
-        height: ${pageHeight}; 
-        max-height: ${pageHeight}; 
-        overflow: hidden; 
+    /* Allow content to flow naturally for measurement */
+    html, body {
+        width: 100%;
         margin: 0;
         padding: 0;
+        -webkit-print-color-adjust: exact;
     }
-    body { 
-        -webkit-print-color-adjust: exact; 
-        zoom: ${zoom}; 
-        width: 100%; 
-        height: ${pageHeight};
-        max-height: ${pageHeight};
-        min-height: ${minHeight};
-        overflow: hidden;
-        margin: 0;
-        padding: 0;
-    }
+    
     ${exportModeStyles}
+
     @media print {
         html, body {
-            height: 297mm !important;
-            max-height: 297mm !important;
+            /* Force A4 height only during print, after script has scaled */
+            height: 297mm !important; 
             overflow: hidden !important;
-            page-break-after: avoid !important;
         }
         @page {
             size: A4;
@@ -1641,10 +1631,49 @@ export const generateCVHtml = (data: ResumeData, templateId: string, language: L
     else if (templateId === 'glider') html = renderGlider(data, language, color || '#3b82f6');
     else html = renderManhattan(data, language, color || '#1a365d');
 
-    // Wrap content in height-constrained div for export mode
-    if (isExportMode && html.includes('<body>')) {
-        html = html.replace('<body>', '<body><div style="max-height:1123px;height:1123px;overflow:hidden;position:relative;">');
-        html = html.replace('</body>', '</div></body>');
+    // Inject Auto-Scaling Script for Export Mode
+    if (isExportMode && html.includes('</body>')) {
+        const script = `
+        <script>
+            window.onload = function() {
+                // Target A4 height in pixels (approx 1123px at 96dpi)
+                // We leave a small buffer to avoid edge clipping
+                var targetHeight = 1115; 
+                var body = document.body;
+                var html = document.documentElement;
+                
+                // Measure full content height
+                var fullHeight = Math.max(
+                    body.scrollHeight, body.offsetHeight, 
+                    html.clientHeight, html.scrollHeight, html.offsetHeight
+                );
+                
+                // If content is larger than A4, scale it down
+                if (fullHeight > targetHeight) {
+                    // Use square root heuristic for combined width/height scaling
+                    // If we widen the page to reflow text, height decreases. 
+                    // scale = sqrt(target / current) is a good approximation for text
+                    var scale = Math.sqrt(targetHeight / fullHeight);
+                    
+                    // Safety check: don't scale too small (e.g. < 0.4)
+                    scale = Math.max(scale, 0.4);
+                    
+                    document.body.style.zoom = scale;
+                    document.body.style.width = (100 / scale) + '%';
+                } else {
+                    // Check if content is significantly smaller (e.g. less than 80% of page)
+                    // We can scale UP to fill the page better
+                    if (fullHeight < targetHeight * 0.9) {
+                         var scaleUp = Math.min(1.0, targetHeight / fullHeight);
+                         document.body.style.zoom = scaleUp;
+                         // For scaling up, we don't necessarily want to narrow the width too much
+                         // So we keep width 100% usually, or maybe adjust slightly
+                    }
+                }
+            }
+        </script>
+        `;
+        html = html.replace('</body>', script + '</body>');
     }
 
     return html;
