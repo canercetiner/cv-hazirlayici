@@ -7,10 +7,14 @@ import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View }
 // Only import mobile ads on native platforms
 let RewardedAd: any, RewardedAdEventType: any, TestIds: any;
 if (Platform.OS !== 'web') {
-    const mobileAds = require('react-native-google-mobile-ads');
-    RewardedAd = mobileAds.RewardedAd;
-    RewardedAdEventType = mobileAds.RewardedAdEventType;
-    TestIds = mobileAds.TestIds;
+    try {
+        const mobileAds = require('react-native-google-mobile-ads');
+        RewardedAd = mobileAds.RewardedAd;
+        RewardedAdEventType = mobileAds.RewardedAdEventType;
+        TestIds = mobileAds.TestIds;
+    } catch (e) {
+        console.log('AdMob not available');
+    }
 }
 
 interface SupportModalProps {

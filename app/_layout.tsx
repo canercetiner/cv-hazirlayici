@@ -11,7 +11,11 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 // Only import mobile ads on native platforms
 let mobileAds: any;
 if (Platform.OS !== 'web') {
-  mobileAds = require('react-native-google-mobile-ads').default;
+  try {
+    mobileAds = require('react-native-google-mobile-ads').default;
+  } catch (error) {
+    console.log('AdMob not available');
+  }
 }
 
 export const unstable_settings = {
